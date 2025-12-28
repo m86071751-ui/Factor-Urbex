@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Google Earth Style - Stadia 3D</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.osmbuildings.org/classic/0.2.2b/OSMBuildings-Leaflet.js"></script>
+    
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #map { height: 100vh; width: 100vw; background: #000; }
+
+        /* Üst Arama Çubuğu (Google Earth Stili) */
+        .top-bar {
+            position: absolute; top: 15px; left: 10px; right: 10px; z-index: 1000;
+            background: white; height: 50px; border-radius: 25px;
+            display: flex; align-items: center; padding: 0 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); max-width: 450px; margin: auto;
+        }
+        .top-bar input { border: none; outline: none; flex: 1; margin-left: 10px; font-size: 16px; }
+
+        /* Sağ Butonlar (Dikey Liste) */
+        .map-buttons {
+            position: absolute; right: 15px; top: 85px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .m-btn {
+            width: 45px; height: 45px; background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: none; cursor: pointer;
+            font-weight: bold; font-size: 14px; color: #555;
+        }
+        .m-btn:active { background: #e8f0fe; color: #1a73e8; }
+
+        /* Alt Kontroller */
+        .bottom-controls {
+            position: absolute; bottom: 20px; left: 15px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.9); padding: 5px 15px;
+            border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 10px; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <span style="font-size: 20px;">←</span>
+        <input type="text" placeholder="Google Earth'te Ara">
+        <img src="https://www.gstatic.com/images/branding/product/1x/avatar_circle_blue_32dp.png" width="30" style="border-radius: 50%">
+    </div>
+
+    <div class="map-buttons">
+        <button class="m-btn">🧭</button>
+        <button class="m-btn">👤</button>
+        <button class="m-btn" onclick="map.setZoom(map.getZoom()+1)">+</button>
+        <button class="m-btn" onclick="map.setZoom(map.getZoom()-1)">-</button>
+        <button class="m-btn" id="btn3D" style="background: #1a73e8; color: white;">3D</button>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="bottom-controls">
+        <span id="zoom-level">40</span>
+        <span style="color: #ccc;">|</span>
+        <span>🛰️ Uydu Aktif</span>
+    </div>
+
+    <script>
+        const apiKey = 'c0134045-0916-48e3-bbc3-bf31fa86b25d';
+
+        // 1. Uydu Katmanını Tanımla
+        const satelliteLayer = L.tileLayer(`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg?api_key=${apiKey}`, {
+            maxZoom: 20,
+            attribution: 'Stadia Maps'
+        });
+
+        // 2. Haritayı Başlat (İstanbul gibi yoğun bir yer 3D için idealdir)
+        const map = L.map('map', {
+            center: [41.0082, 28.9784], 
+            zoom: 17, // 3D binalar için yakın başlamalı
+            layers: [satelliteLayer],
+            zoomControl: false
+        });
+
+        // 3. 3D Binaları Yükle (OSM Buildings)
+        // Uydu üzerinde beyaz binalar harika durur
+        const osmb = new OSMBuildings(map).load();
+
+        // Zoom değiştikçe alt göstergeyi güncelle
+        map.on('zoomend', function() {
+            document.getElementById('zoom-level').innerText = map.getZoom() * 2; 
+        });
+
+        // 3D Butonu Fonksiyonu
+        let is3D = true;
+        function toggle3D() {
+            const btn = document.getElementById('btn3D');
+            if(is3D) {
+                map.removeLayer(osmb);
+                btn.style.background = "white";
+                btn.style.color = "#555";
+            } else {
+                osmb.addTo(map);
+                btn.style.background = "#1a73e8";
+                btn.style.color = "white";
+            }
+            is3D = !is3D;
+        }
+    </script>
+</body>
+      </html>
+  
